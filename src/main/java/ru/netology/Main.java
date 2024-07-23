@@ -14,27 +14,28 @@ public class Main {
         Random random = new Random();
         String[] texts = new String[WORD_COUNT];
 
-
+        // Генерация слов
         for (int i = 0; i < texts.length; i++) {
-            texts[i] = generateText(LETTERS, 3 + random.nextInt(3));
+            texts[i] = generateText(LETTERS, 3 + random.nextInt(3)); // длина 3, 4 или 5
         }
 
-        Thread thread3 = new Thread(() -> checkBeautifulWords(texts, 3, beautifulCount3));
-        Thread thread4 = new Thread(() -> checkBeautifulWords(texts, 4, beautifulCount4));
-        Thread thread5 = new Thread(() -> checkBeautifulWords(texts, 5, beautifulCount5));
-
-        thread3.start();
-        thread4.start();
-        thread5.start();
-
-        try {
-            thread3.join();
-            thread4.join();
-            thread5.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        // Запуск потоков для проверки "красивых" слов
+        Thread[] threads = new Thread[3];
+        for (int j = 0; j < threads.length; j++) {
+            threads[j] = new Thread(() -> checkBeautifulWords(texts));
+            threads[j].start();
         }
 
+        // Ожидание завершения потоков
+        for (Thread thread : threads) {
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        // Ввод результата
         System.out.printf("Красивых слов с длиной 3: %d шт%n", beautifulCount3.get());
         System.out.printf("Красивых слов с длиной 4: %d шт%n", beautifulCount4.get());
         System.out.printf("Красивых слов с длиной 5: %d шт%n", beautifulCount5.get());
@@ -49,10 +50,20 @@ public class Main {
         return text.toString();
     }
 
-    public static void checkBeautifulWords(String[] texts, int length, AtomicInteger counter) {
+    public static void checkBeautifulWords(String[] texts) {
         for (String word : texts) {
-            if (word.length() == length && (isPalindrome(word) || isSingleLetter(word) || isSorted(word))) {
-                counter.incrementAndGet();
+            if (isPalindrome(word) || isSingleLetter(word) || isSorted(word)) {
+                switch (word.length()) {
+                    case 3:
+                        beautifulCount3.incrementAndGet();
+                        break;
+                    case 4:
+                        beautifulCount4.incrementAndGet();
+                        break;
+                    case 5:
+                        beautifulCount5.incrementAndGet();
+                        break;
+                }
             }
         }
     }
